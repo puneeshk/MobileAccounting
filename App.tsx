@@ -13,13 +13,34 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { LinearGradient } from 'expo-linear-gradient'
 
 const Stack = createNativeStackNavigator();
+import * as Sentry from '@sentry/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { enableScreens } from 'react-native-screens';
+import EditAccount from './src/Stack/EditAccount'
+enableScreens(true);
+
+Sentry.init({
+  dsn: 'https://66eebed4bfec45895342e29224fb6c30@o4509707199053824.ingest.us.sentry.io/4509707204624384',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
   return (
     <Tab.Navigator 
-      initialRouteName="MobileAccounting"
+      initialRouteName="MobileAccountingTab"
       screenOptions={{
         tabBarActiveTintColor: '#ffd33d',
         tabBarStyle: {
@@ -67,7 +88,7 @@ function TabNavigator() {
         }} 
       />       
       <Tab.Screen 
-        name="MobileAccounting" 
+        name="MobileAccountingTab" 
         component={MobileAccounting} 
         options={{ 
           headerShown: false, 
@@ -147,6 +168,13 @@ function StackNavigator() {
           headerShown: false
         }}
       />
+        <Stack.Screen
+        name="EditAccount"
+        component={EditAccount}
+        options={{
+          headerShown: false
+        }}
+      />
       <Stack.Screen
         name="AddVoucher"
         component={AddVoucher}
@@ -158,15 +186,17 @@ function StackNavigator() {
   )
 }
 
-export default function App() {
+export default Sentry.wrap(function App() {
   return (
     <>
+    <SafeAreaProvider>
       <NavigationContainer>
         <StackNavigator />
       </NavigationContainer>
+      </SafeAreaProvider>
     </>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

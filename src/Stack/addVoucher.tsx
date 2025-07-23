@@ -1,7 +1,7 @@
 import * as React from 'react'
 import COLORS from '../../constants/color'
 import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image } from 'react-native'
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaView} from 'react-native-safe-area-context'
 import { BACK } from '../../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { RadioButton } from 'react-native-paper'
@@ -10,7 +10,7 @@ export default function AddVoucher({ navigation }: any) {
     const [value, setValue] = React.useState('Credit');
     return (
         <>
-            <SafeAreaProvider>
+           
                 {<SafeAreaView style={styles.container} edges={['top']}>
                     <LinearGradient
                         colors={['#ec7d20', '#be2b2c']}
@@ -86,7 +86,7 @@ export default function AddVoucher({ navigation }: any) {
                         </View>
                     </ScrollView>
                 </SafeAreaView>}
-            </SafeAreaProvider>
+        
         </>
     )
 }

@@ -1,266 +1,225 @@
-import React, { useState } from 'react';
-import COLORS from '../../constants/color'
-import { Pressable, StyleSheet, Text, View, ScrollView, Image, TextInput, Button } from 'react-native'
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context'
-import { BACK, UPARROW, DOWNARROW } from '../../utils/imagePath'
-import { LinearGradient } from 'expo-linear-gradient'
-import Modal from 'react-native-modal'
-import Feather from '@react-native-vector-icons/feather'
+import React, { useState, useEffect, useCallback } from 'react';
+import COLORS from '../../constants/color';
+import { Pressable, StyleSheet, Text, View, ScrollView, Image, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BACK, UPARROW, DOWNARROW } from '../../utils/imagePath';
+import { LinearGradient } from 'expo-linear-gradient';
+import Modal from 'react-native-modal';
+import Feather from '@react-native-vector-icons/feather';
+import axiosInstance from '../config/axios';
+import { useFocusEffect } from '@react-navigation/native';
+
+type RouteParams = {
+  accountId: number;
+};
+interface Account {
+  accountId: number;
+  shortCode: string;
+  name: string;
+  openingBalance: number;
+  createdAt: string;
+}
 
 export default function AccountMaster({ navigation }: any) {
-    const [value, setValue] = React.useState('Credit')
-    const [isVisible, setIsVisible] = useState(false)
-    return (
-        <>
-            <SafeAreaProvider>
-                {<SafeAreaView style={styles.container} edges={['top']}>
-                    <LinearGradient
-                        colors={['#ec7d20', '#be2b2c']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={{ paddingTop: 20, paddingBottom: 20 }}
-                    >
-                        <Pressable
-                            onPress={() => navigation.navigate("MobileAccounting")}
-                            style={styles.back}
-                        >
-                            <Image source={BACK} style={styles.backIcon} />
-                        </Pressable>
-                        <Text style={styles.heading}>Account Master</Text>
-                    </LinearGradient> 
-                </SafeAreaView>}
-                <Pressable
-                    style={styles.add}
-                    onPress={() => navigation.navigate("AddAccount")}
-                >
-                    <Feather name="plus" color="#fff" size={20} />
-                </Pressable>
-                <View style={styles.searchbar}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Search"
-                    />
-                    <Feather name="search" color="#ec7e1d" size={24} style={styles.searchIcon} />
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/api/AccountMaster');
+
+      if (response.data.success) {
+        setAccounts(response.data.data);      
+      }
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAccount = async(id: Number) => {
+    setIsVisible(false)
+    try {
+      const res = await axiosInstance.delete(`/api/AccountMaster/${id}`)
+      if (res.data.success) {
+        Alert.alert("Account deleted")
+        fetchAccounts()
+      }
+    } catch (error) {
+      console.log("Error in delete account", error);
+      
+    }
+  }
+
+  const filteredAccounts = accounts.filter(account =>
+    account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    account.shortCode.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2
+    }).format(Math.abs(amount));
+  };
+
+  const getInitial = (name: string) => name.charAt(0).toUpperCase();
+
+  const getCircleColor = (index: number) => {
+    const colors = ['#d80d9c', 'green', '#0249fe', '#b0361a'];
+    return colors[index % colors.length];
+  };
+
+  const handleAccountPress = (account: Account) => {
+    setSelectedAccount(account);
+    setIsVisible(true);
+  };
+  
+  useFocusEffect(
+    useCallback(() => {
+     fetchAccounts()
+    }, [])
+  )
+  return (
+    <>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <LinearGradient
+          colors={['#ec7d20', '#be2b2c']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{ paddingTop: 20, paddingBottom: 20 }}
+        >
+          <Pressable
+            onPress={() => navigation.navigate("MobileAccountingTab")}
+            style={styles.back}
+          >
+            <Image source={BACK} style={styles.backIcon} />
+          </Pressable>
+          <Text style={styles.heading}>Account Master</Text>
+        </LinearGradient>
+
+        <Pressable
+          style={styles.add}
+          onPress={() => navigation.navigate("AddAccount")}
+        >
+          <Feather name="plus" color="#fff" size={20} />
+        </Pressable>
+
+        <View style={styles.searchbar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Feather name="search" color="#ec7e1d" size={24} style={styles.searchIcon} />
+        </View>
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator  size="large" color="#ec7d20" />
+          </View>
+        ) : (
+          <ScrollView style={styles.scrollView}>
+            {filteredAccounts.map((account, index) => (
+              <Pressable
+                key={account.accountId}
+                onPress={() => handleAccountPress(account)}
+              >
+                <View style={styles.whiteCard}>
+                  <View style={[styles.circle, { backgroundColor: getCircleColor(index) }]}>
+                    <Text style={styles.alphanumeric}>{getInitial(account.name)}</Text>
+                  </View>
+                  <Text style={styles.name}>{account.name}</Text>
+                  <View style={styles.spaceBetween}>
+                    <Text style={styles.shortCode}>{account.shortCode}</Text>
+                    <Text style={styles.amoumt}>
+                      <Image 
+                        source={account.openingBalance >= 0 ? UPARROW : DOWNARROW} 
+                        style={styles.upArrow} 
+                      />
+                      {formatCurrency(account.openingBalance)}
+                    </Text>
+                  </View>
                 </View>
-                <ScrollView style={styles.scrollView}>
-                    <Pressable
-                        onPress={() => setIsVisible(true)}
-                    >
-                        <View style={styles.whiteCard}>  
-                            <View style={[styles.circle, styles.purple]}>
-                                <Text style={styles.alphanumeric}>P</Text>
-                            </View>      
-                            <Text style={styles.name}>Puneesh Kapoor</Text>
-                            <View style={styles.spaceBetween}>
-                                <Text style={styles.shortCode}>Pun897</Text>
-                                <Text style={styles.amoumt}>
-                                    <Image source={UPARROW} style={styles.upArrow} />
-                                    &nbsp; ₹ 33,000
-                                </Text>
-                            </View>                        
-                        </View>          
-                    </Pressable>
-                    <View style={styles.whiteCard}>  
-                        <View style={styles.circle}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.blue]}>
-                            <Text style={styles.alphanumeric}>P</Text>
-                        </View>      
-                        <Text style={styles.name}>Puneesh Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={UPARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 33,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.brown]}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.purple]}>
-                            <Text style={styles.alphanumeric}>P</Text>
-                        </View>      
-                        <Text style={styles.name}>Puneesh Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={UPARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 33,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={styles.circle}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.blue]}>
-                            <Text style={styles.alphanumeric}>P</Text>
-                        </View>      
-                        <Text style={styles.name}>Puneesh Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={UPARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 33,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.brown]}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.purple]}>
-                            <Text style={styles.alphanumeric}>P</Text>
-                        </View>      
-                        <Text style={styles.name}>Puneesh Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={UPARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 33,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={styles.circle}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.blue]}>
-                            <Text style={styles.alphanumeric}>P</Text>
-                        </View>      
-                        <Text style={styles.name}>Puneesh Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={UPARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 33,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <View style={styles.whiteCard}>  
-                        <View style={[styles.circle, styles.brown]}>
-                            <Text style={styles.alphanumeric}>B</Text>
-                        </View>      
-                        <Text style={styles.name}>Bharti Kapoor</Text>
-                        <View style={styles.spaceBetween}>
-                            <Text style={styles.shortCode}>Pun897</Text>
-                            <Text style={styles.amoumt}>
-                                <Image source={DOWNARROW} style={styles.upArrow} />
-                                &nbsp; ₹ 64,000
-                            </Text>
-                        </View>                        
-                    </View>
-                    <Modal
-                        isVisible={isVisible}
-                        onBackdropPress={() => setIsVisible(false)}
-                        style={styles.bottomModal}
-                    >
-                        <View style={styles.modalContent}>
-                            <Text style={styles.h1}>Puneesh Kapoor</Text>
-                            <View style={styles.rowColumn}>
-                                <View>
-                                    <Text style={styles.label}>Short Code</Text>
-                                    <Text style={styles.valueText}>
-                                        Pun897
-                                    </Text>
-                                </View>
-                                <View>
-                                    <Text style={[styles.label, styles.textRight]}>Amount</Text>
-                                    <Text style={[styles.valueText, styles.textRight]}>
-                                        <Image source={DOWNARROW} style={styles.upArrow} />
-                                        &nbsp; ₹ 64,000
-                                    </Text>
-                                </View>
-                            </View>
-                            <View style={[styles.rowColumn, {marginTop: 24}]}>
-                                <View style={{ width: '48%' }}>
-                                    <Pressable
-                                        style={styles.editButton}
-                                    >
-                                        <Feather name="edit-3" color="#fff" size={20} style={{ marginRight: 6 }} />
-                                        <Text style={styles.buttonText}>
-                                            Edit
-                                        </Text>
-                                    </Pressable>
-                                </View>
-                                <View style={{ width: '48%' }}>
-                                    <Pressable
-                                        style={styles.deleteButton}
-                                    >
-                                        <Feather name="trash" color="#fff" size={20} style={{ marginRight: 6 }} />                                           
-                                        <Text style={styles.buttonText}>                                            
-                                            Delete
-                                        </Text>                                            
-                                    </Pressable>
-                                </View>
-                            </View>
-                            <Feather name="x" color="#000" size={24} style={styles.close} onPress={() => setIsVisible(false)} />
-                        </View>
-                    </Modal>
-                </ScrollView>
-            </SafeAreaProvider>
-        </>
-    )
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+      </SafeAreaView>
+
+      {/* Account Detail Modal */}
+      <Modal
+        isVisible={isVisible}
+        onBackdropPress={() => setIsVisible(false)}
+        style={styles.bottomModal}
+      >
+        {selectedAccount && (
+          <View style={styles.modalContent}>
+            <Text style={styles.h1}>{selectedAccount.name}</Text>
+            <View style={styles.rowColumn}>
+              <View>
+                <Text style={styles.label}>Short Code</Text>
+                <Text style={styles.valueText}>{selectedAccount.shortCode}</Text>
+              </View>
+              <View>
+                <Text style={[styles.label, styles.textRight]}>Balance</Text>
+                <Text style={[styles.valueText, styles.textRight]}>
+                  <Image 
+                    source={selectedAccount.openingBalance >= 0 ? UPARROW : DOWNARROW} 
+                    style={styles.upArrow} 
+                  />
+                  {formatCurrency(selectedAccount.openingBalance)}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.rowColumn, {marginTop: 24}]}>
+              <View style={{ width: '48%' }}>
+                <Pressable
+                  style={styles.editButton}
+                  onPress={() => {
+                    setIsVisible(false);
+                    navigation.navigate('EditAccount', { id: selectedAccount.accountId });
+                  }}
+                >
+                  <Feather name="edit-3" color="#fff" size={20} style={{ marginRight: 6 }} />
+                  <Text style={styles.buttonText}>Edit</Text>
+                </Pressable>
+              </View>
+              <View style={{ width: '48%' }}>
+                <Pressable
+                  style={styles.deleteButton}
+                  onPress={() => deleteAccount(selectedAccount.accountId)}>
+                  <Feather name="trash" color="#fff" size={20} style={{ marginRight: 6 }} />
+                  <Text style={styles.buttonText}>Delete</Text>
+                </Pressable>
+              </View>
+            </View>
+            <Feather 
+              name="x" 
+              color="#000" 
+              size={24} 
+              style={styles.close} 
+              onPress={() => setIsVisible(false)} 
+            />
+          </View>
+        )}
+      </Modal>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: COLORS.black,
+        // backgroundColor: COLORS.whit,
         paddingTop: 0,
-        color: COLORS.white
+        color: COLORS.white,
     },
     back: {
         width: 30,
@@ -366,7 +325,7 @@ const styles = StyleSheet.create({
     },
     upArrow: {
         width: 8,
-        height: 8
+        height: 8,
     },    
     add: {
         backgroundColor: '#cd4a26',
@@ -375,7 +334,7 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         position: 'absolute',
         right: 16,
-        bottom: 120,
+        bottom: 0,
         zIndex: 4,
         justifyContent: 'center',
         alignItems: 'center',
@@ -456,5 +415,12 @@ const styles = StyleSheet.create({
         zIndex: 3,
         top: 16,
         right: 16
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        marginTop: 50
     }
-})
+});

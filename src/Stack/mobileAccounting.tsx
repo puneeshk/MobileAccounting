@@ -2,12 +2,12 @@ import COLORS from '../../constants/color'
 import { USER, ACCOUNTMASTER, VOUCHER, TRANSACTION, CONFIRM, AUDIT, ACCOUNTGROUP } from '../../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native'
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaView} from 'react-native-safe-area-context'
 
 export default function MobileAccounting({ navigation }: any) {
   return (
     <>        
-      <SafeAreaProvider>
+      
         {<SafeAreaView style={styles.container} edges={['top']}>
             <LinearGradient
               colors={['#ec7d20', '#be2b2c']}
@@ -134,7 +134,7 @@ export default function MobileAccounting({ navigation }: any) {
               </View>
             </ScrollView>
         </SafeAreaView>}
-      </SafeAreaProvider>       
+     
     </>
   )
 }

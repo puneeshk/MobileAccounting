@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import COLORS from '../../constants/color'
 import { Pressable, StyleSheet, Text, View, ScrollView, Image, TextInput } from 'react-native'
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaView } from 'react-native-safe-area-context'
 import { BACK, UPARROW, DOWNARROW } from '../../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import Feather from '@react-native-vector-icons/feather'
@@ -9,7 +9,7 @@ import Feather from '@react-native-vector-icons/feather'
 export default function AccountMaster({ navigation }: any) {
   return (
     <>
-      <SafeAreaProvider>
+      
         {<SafeAreaView style={styles.container} edges={['top']}>
           <LinearGradient
             colors={['#ec7d20', '#be2b2c']}
@@ -196,7 +196,7 @@ export default function AccountMaster({ navigation }: any) {
             </View>          
           </Pressable>
         </ScrollView>
-      </SafeAreaProvider>
+   
     </>
   )
 }
