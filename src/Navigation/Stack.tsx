@@ -8,11 +8,6 @@ import TabNavigator from "./Tab"
 
 const Stack = createNativeStackNavigator();
 
-
-
-
-
-
 function StackNavigator() {
   return (
     <Stack.Navigator>

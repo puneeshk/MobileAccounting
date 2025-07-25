@@ -3,7 +3,7 @@ import { StyleSheet, Image, Text, View } from 'react-native'
 import MobileAccounting from '../Stack/mobileAccounting'
 import AccountMaster from '../BottomBar/accountMaster'
 import VoucherEntry from '../BottomBar/voucherEntry'
-import AccountList from '../component/accountList/accountList'
+import GroupDetails from '../component/GroupDetails/GroupDetails'
 import TransactionDetails from '../BottomBar/transactionDetails'
 import { LinearGradient } from 'expo-linear-gradient'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -46,8 +46,8 @@ function TabNavigator() {
         }} 
       />
       <Tab.Screen 
-        name="AccountList" 
-        component={AccountList} 
+        name="GroupDetails" 
+        component={GroupDetails} 
         options={{ 
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
@@ -55,7 +55,7 @@ function TabNavigator() {
           ),
           tabBarLabel: ({ focused, color }) => (
             <Text style={{ color: focused ? '#cd4a26' : '#979797', fontSize: focused ? 11 : 10, marginTop: 4 }}>
-              Account List
+              Group Details
             </Text>
           )
         }} 
@@ -65,7 +65,6 @@ function TabNavigator() {
         component={MobileAccounting} 
         options={{ 
           headerShown: false, 
-          tabBarStyle: { display: 'none' },
           tabBarLabel: ({ focused, color }) => (
             <LinearGradient
               colors={['#ec7d20', '#be2b2c']}

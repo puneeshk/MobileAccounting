@@ -42,8 +42,7 @@ export default function AccountMaster({ navigation }: any) {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/AccountMaster/list');
-    
+      const response = await axiosInstance.get('/api/AccountMaster/list');    
        
       if (response.data.success) {
         setAccounts(response.data.data);

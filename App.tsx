@@ -1,14 +1,4 @@
 import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { ACCOUNTMASTER, ACCOUNTMASTER_GREY, VOUCHER, VOUCHER_GREY, DASHBOARD_WHITE, TRANSACTION, TRANSACTION_GREY } from './src/utils/imagePath'
-import { StyleSheet, Image, Text, View } from 'react-native'
-import MobileAccounting from './src/Stack/mobileAccounting'
-import AccountMaster from './src/BottomBar/accountMaster'
-import VoucherEntry from './src/BottomBar/voucherEntry'
-import AccountList from './src/component/accountList/accountList'
-import TransactionDetails from './src/BottomBar/transactionDetails'
-import AddAccount from './src/Stack/addAccount'
-import AddVoucher from './src/Stack/addVoucher'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { LinearGradient } from 'expo-linear-gradient'
 
@@ -31,8 +21,6 @@ Sentry.init({
 });
 
 const Tab = createBottomTabNavigator();
-
-
 
 export default Sentry.wrap(function App() {
   return (

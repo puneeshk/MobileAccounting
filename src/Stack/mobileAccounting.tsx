@@ -29,7 +29,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={USER} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>{"User \n Management"}</Text>
+                    <Text style={styles.subheading}>User Management</Text>
                   </LinearGradient>
                 </View>  
                 <View style={styles.cardView}>
@@ -62,7 +62,7 @@ export default function MobileAccounting({ navigation }: any) {
                       <View style={styles.iconCircle}>
                         <Image source={VOUCHER} style={styles.icon} />
                       </View>
-                      <Text style={styles.subheading}>{"Voucher \n Entry"}</Text>
+                      <Text style={styles.subheading}>Voucher Entry</Text>
                     </LinearGradient>
                   </Pressable>
                 </View>  
@@ -76,7 +76,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={TRANSACTION} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>Transaction Details</Text>
+                    <Text style={styles.subheading}>Transactions</Text>
                   </LinearGradient>
                 </View>  
                 <View style={styles.cardView}>
@@ -89,7 +89,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={CONFIRM} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>{"Confirm \n Entry"}</Text>
+                    <Text style={styles.subheading}>Confirm Entry</Text>
                   </LinearGradient>
                 </View>  
                 <View style={styles.cardView}>
@@ -102,7 +102,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={AUDIT} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>{"Audit \n Logs"}</Text>
+                    <Text style={styles.subheading}>Audit Logs</Text>
                   </LinearGradient>
                 </View>    
                 <View style={styles.cardView}>
@@ -115,7 +115,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={ACCOUNTGROUP} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>Account Group Master</Text>
+                    <Text style={styles.subheading}>Groups Account Master</Text>
                   </LinearGradient>
                 </View>
                 <View style={styles.cardView}>
@@ -128,7 +128,7 @@ export default function MobileAccounting({ navigation }: any) {
                     <View style={styles.iconCircle}>
                       <Image source={USER} style={styles.icon} />
                     </View>
-                    <Text style={styles.subheading}>Account Group Details</Text>
+                    <Text style={[ styles.subheading, {minHeight: 70}]}>Groups Details</Text>
                   </LinearGradient>
                 </View>            
               </View>
@@ -165,7 +165,10 @@ const styles = StyleSheet.create({
   },
   cardView: {
     width: '33%',
-    padding: 8
+    paddingTop: 8,
+    paddingLeft: 5,
+    paddingRight: 5,
+    paddingBottom: 8,
   },
   iconCircle: {
     backgroundColor: COLORS.white,
