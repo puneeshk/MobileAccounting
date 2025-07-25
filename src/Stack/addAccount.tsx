@@ -2,13 +2,13 @@ import {useState} from 'react'
 import COLORS from '../../constants/color'
 import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image, Alert } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import { BACK } from '../../utils/imagePath'
+import { BACK } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { RadioButton } from 'react-native-paper'
 import axiosInstance from '../config/axios'
 
 export default function AddAccount({ navigation }: any) {
-    const [value, setValue] = useState('Credit');
+    const [value, setValue] = useState('cr');
     const [shortCode, setShortCode] = useState('');
     const [name, setName] = useState('');
     const [openingBalance, setOpeningBalance] = useState('');
@@ -28,17 +28,20 @@ export default function AddAccount({ navigation }: any) {
         }
 
 
-        const adjustedBalance = value === 'Debit' ? -Math.abs(balance) : Math.abs(balance);
-
+        // const adjustedBalance = value === 'Debit' ? -Math.abs(balance) : Math.abs(balance);
+        console.log(value);
+        
         try {
             setIsLoading(true);
-            const res = await axiosInstance.post("/api/AccountMaster", {
+            const res = await axiosInstance.post("/api/AccountMaster/save", {
                 shortCode,
                 name,
-                openingBalance: adjustedBalance,
+                drcr: value,
+                openingBalance,
                 createdBy: 1, 
                 createdAt: new Date().toISOString()
             });
+            console.log(res);
             
             if (res.data) {
                 Alert.alert('Success', 'Account added successfully');
@@ -109,11 +112,11 @@ export default function AddAccount({ navigation }: any) {
                             <RadioButton.Group onValueChange={setValue} value={value}>
                                 <View style={styles.radioGroup}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <RadioButton value="Credit" color="#ec7d20" />
+                                        <RadioButton value="cr" color="#ec7d20" />
                                         <Text>Credit</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <RadioButton value="Debit" color="#ec7d20" />
+                                        <RadioButton value="dr" color="#ec7d20" />
                                         <Text>Debit</Text>
                                     </View>
                                 </View>

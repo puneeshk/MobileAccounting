@@ -2,7 +2,7 @@ import * as React from 'react'
 import COLORS from '../../constants/color'
 import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import { BACK } from '../../utils/imagePath'
+import { BACK } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { RadioButton } from 'react-native-paper'
 

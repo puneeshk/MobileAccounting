@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import COLORS from '../../constants/color'
 import { Pressable, StyleSheet, Text, View, ScrollView, Image, TextInput } from 'react-native'
 import {SafeAreaView } from 'react-native-safe-area-context'
-import { BACK, UPARROW, DOWNARROW } from '../../utils/imagePath'
+import { BACK, UPARROW, DOWNARROW } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import Feather from '@react-native-vector-icons/feather'
 

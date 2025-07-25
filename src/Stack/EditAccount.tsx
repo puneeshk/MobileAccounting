@@ -11,7 +11,7 @@ import {
     Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BACK } from "../../utils/imagePath";
+import { BACK } from "../utils/imagePath";
 import { LinearGradient } from "expo-linear-gradient";
 import { ActivityIndicator, RadioButton } from "react-native-paper";
 import axiosInstance from "../config/axios";
@@ -22,6 +22,7 @@ type RouteParams = {
         accountId: number;
         shortCode: string;
         name: string;
+        drcr: string, 
         openingBalance: number;
     };
 };
@@ -30,54 +31,64 @@ export default function EditAccount({ navigation }: any) {
     const route = useRoute();
     const { id } = route.params as { id: number };
     const [loading, setLoading] = useState(true);
-    const [value, setValue] = useState("Credit");
+    const [value, setValue] = useState("cr");
     const [shortCode, setShortCode] = useState("");
     const [name, setName] = useState("");
     const [openingBalance, setOpeningBalance] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
 
     const updateAccountHandler = async () => {
-        // if (!shortCode || !name || !openingBalance) {
-        //     Alert.alert('Error', 'Please fill all fields');
-        //     return;
-        // }
-        // const balance = parseFloat(openingBalance);
-        // if (isNaN(balance)) {
-        //     Alert.alert('Error', 'Please enter a valid opening balance');
-        //     return;
-        // }
-        // const adjustedBalance = value === 'Debit' ? -Math.abs(balance) : Math.abs(balance);
-        // try {
-        //     setIsLoading(true);
-        //     const res = await axiosInstance.put("/api/AccountMaster", {
-        //         shortCode,
-        //         name,
-        //         openingBalance: adjustedBalance,
-        //         createdBy: 1,
-        //         createdAt: new Date().toISOString()
-        //     });
-        //     if (res.data) {
-        //         Alert.alert('Success', 'Account added successfully');
-        //         navigation.goBack();
-        //     }
-        // } catch (error) {
-        //     console.log("Error in add account", error);
-        //     Alert.alert('Error', 'Failed to add account');
-        // } finally {
-        // }
+        if (!shortCode || !name || !openingBalance || !value) {
+            Alert.alert('Error', 'Please fill all fields');
+            return;
+        }
+        const balance = parseFloat(openingBalance);
+        if (isNaN(balance)) {
+            Alert.alert('Error', 'Please enter a valid opening balance');
+            return;
+        }
+   
+        try {
+            setIsLoading(true);
+            const res = await axiosInstance.post("/api/AccountMaster/save", {
+                accountId: id,
+                shortCode,
+                name,
+                drcr: value,
+                openingBalance: balance,
+                createdBy: 1, 
+                createdAt: new Date().toISOString()
+            });
+            if (res.data) {
+                Alert.alert('Success', 'Account Edited successfully');
+                navigation.goBack();
+            }
+        } catch (error) {
+            console.log("Error in Edit account", error);
+            Alert.alert('Error', 'Failed to Edit account');
+        } finally {
+          setIsLoading(false)
+        }
     };
 
     const getEditAccount = async () => {
+        
         try {
             setLoading(true);
-            const response = await axiosInstance.get(`/api/AccountMaster/${id}`);
-            const accountData = response.data;
+            const response = await axiosInstance.get(`/api/AccountMaster/list`, {
+                params: {
+                    accountId: id,
+                }
+            });
+            
+            const accountData = response.data.data[0];
             setShortCode(accountData.shortCode);
             setName(accountData.name);
             setOpeningBalance(Math.abs(accountData.openingBalance).toString());
-            setValue(accountData.openingBalance >= 0 ? "Credit" : "Debit");
+            setValue(accountData.drcr)                                                                    
         } catch (error) {
-            console.error("Error fetching accounts:", error);
+            console.error("Error fetching account:", error);
         } finally {
             setLoading(false);
         }
@@ -139,18 +150,18 @@ export default function EditAccount({ navigation }: any) {
                             </View>
                         </View>
                         <View style={styles.gap}>
-                            <RadioButton.Group onValueChange={setValue} value={value}>
+                            <RadioButton.Group  onValueChange={setValue} value={value}>
                                 <View style={styles.radioGroup}>
                                     <View
                                         style={{ flexDirection: "row", alignItems: "center" }}
                                     >
-                                        <RadioButton value="Credit" color="#ec7d20" />
+                                        <RadioButton value="cr" color="#ec7d20" />
                                         <Text>Credit</Text>
                                     </View>
                                     <View
                                         style={{ flexDirection: "row", alignItems: "center" }}
                                     >
-                                        <RadioButton value="Debit" color="#ec7d20" />
+                                        <RadioButton value="dr" color="#ec7d20" />
                                         <Text>Debit</Text>
                                     </View>
                                 </View>
@@ -169,7 +180,7 @@ export default function EditAccount({ navigation }: any) {
                             >
                                 <View>
                                     <Text style={styles.buttonText}>
-                                        {/* {isLoading ? 'Processing...' : 'Submit'} */}submit
+                                        {isLoading ? 'Processing...' : 'Submit'}
                                     </Text>
                                 </View>
                             </Pressable>

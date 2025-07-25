@@ -1,5 +1,5 @@
 import COLORS from '../../constants/color'
-import { USER, ACCOUNTMASTER, VOUCHER, TRANSACTION, CONFIRM, AUDIT, ACCOUNTGROUP } from '../../utils/imagePath'
+import { USER, ACCOUNTMASTER, VOUCHER, TRANSACTION, CONFIRM, AUDIT, ACCOUNTGROUP } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
