@@ -42,7 +42,8 @@ export default function AccountMaster({ navigation }: any) {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/AccountMaster/list');    
+      const response = await axiosInstance.get('/api/AccountMaster/list');
+    
        
       if (response.data.success) {
         setAccounts(response.data.data);
@@ -126,14 +127,6 @@ export default function AccountMaster({ navigation }: any) {
           </Pressable>
           <Text style={styles.heading}>Account Master</Text>
         </LinearGradient>
-
-        <Pressable
-          style={styles.add}
-          onPress={() => navigation.navigate("AddAccount")}
-        >
-          <Feather name="plus" color="#fff" size={20} />
-        </Pressable>
-
         <View style={styles.searchbar}>
           <TextInput
             style={styles.input}
@@ -167,7 +160,7 @@ export default function AccountMaster({ navigation }: any) {
                       <Image
                         source={getArrowIcon(account.drcr)}
                         style={styles.upArrow}
-                      />
+                      /> &nbsp;
                       {formatCurrency(account.openingBalance)}
                     </Text>
                   </View>
@@ -177,6 +170,13 @@ export default function AccountMaster({ navigation }: any) {
           </ScrollView>
         )}
       </SafeAreaView>
+
+      <Pressable
+          style={styles.add}
+          onPress={() => navigation.navigate("AddAccount")}
+        >
+          <Feather name="plus" color="#fff" size={20} />
+        </Pressable>
 
       {/* Account Detail Modal */}
       <Modal
@@ -200,15 +200,17 @@ export default function AccountMaster({ navigation }: any) {
               </View>
             </View>
             
-            <View style={styles.rowColumn}>
+            <View style={[styles.rowColumn, {marginTop: 20}]}>
               <View>
                 <Text style={styles.label}>Balance</Text>
+              </View>
+              <View>                
                 <Text style={styles.valueText}>
                   {/* CORRECTED ARROW USAGE */}
                   <Image
                     source={getArrowIcon(selectedAccount.drcr)}
                     style={styles.upArrow}
-                  />
+                  /> &nbsp;
                   {formatCurrency(selectedAccount.openingBalance)}
                 </Text>
               </View>
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     position: 'absolute',
     right: 16,
-    bottom: 0,
+    bottom: 110,
     zIndex: 4,
     justifyContent: 'center',
     alignItems: 'center',
@@ -403,6 +405,7 @@ const styles = StyleSheet.create({
   rowColumn: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     display: 'flex'
   },
   label: {
@@ -460,4 +463,4 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 50
   }
-});
+})

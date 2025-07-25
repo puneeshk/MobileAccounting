@@ -102,99 +102,6 @@ export default function AccountMaster({ navigation }: any) {
               </View>                         
             </View>          
           </Pressable>
-          <Pressable>
-            <View style={styles.whiteCard}>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Voucher ID</Text>
-                <Text style={styles.valueText}>Pun897</Text>
-              </View>
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account Code</Text>
-                <Text style={styles.valueText}>7436941</Text>
-              </View>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account</Text>
-                <Text style={styles.valueText}>
-                  <Image source={UPARROW} style={styles.upArrow} />
-                  &nbsp; ₹ 33,000
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Narration</Text>
-                <Text style={styles.valueText}>
-                  -
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Confirm Flag</Text>
-                <Text style={styles.valueText}>
-                  NA
-                </Text>
-              </View>                         
-            </View>          
-          </Pressable>
-          <Pressable>
-            <View style={styles.whiteCard}>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Voucher ID</Text>
-                <Text style={styles.valueText}>Pun897</Text>
-              </View>
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account Code</Text>
-                <Text style={styles.valueText}>7436941</Text>
-              </View>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account</Text>
-                <Text style={styles.valueText}>
-                  <Image source={UPARROW} style={styles.upArrow} />
-                  &nbsp; ₹ 33,000
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Narration</Text>
-                <Text style={styles.valueText}>
-                  -
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Confirm Flag</Text>
-                <Text style={styles.valueText}>
-                  NA
-                </Text>
-              </View>                         
-            </View>          
-          </Pressable>
-          <Pressable>
-            <View style={styles.whiteCard}>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Voucher ID</Text>
-                <Text style={styles.valueText}>Pun897</Text>
-              </View>
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account Code</Text>
-                <Text style={styles.valueText}>7436941</Text>
-              </View>  
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Account</Text>
-                <Text style={styles.valueText}>
-                  <Image source={UPARROW} style={styles.upArrow} />
-                  &nbsp; ₹ 33,000
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Narration</Text>
-                <Text style={styles.valueText}>
-                  -
-                </Text>
-              </View> 
-              <View style={[styles.rowColumn]}>
-                <Text style={styles.label}>Confirm Flag</Text>
-                <Text style={styles.valueText}>
-                  NA
-                </Text>
-              </View>                         
-            </View>          
-          </Pressable>
         </ScrollView>
    
     </>
@@ -238,7 +145,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     position: 'absolute',
     right: 16,
-    bottom: 120,
+    bottom: 110,
     zIndex: 4,
     justifyContent: 'center',
     alignItems: 'center',

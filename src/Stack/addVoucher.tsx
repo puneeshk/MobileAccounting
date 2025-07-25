@@ -1,92 +1,151 @@
 import * as React from 'react'
 import COLORS from '../../constants/color'
-import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image } from 'react-native'
+import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image, TouchableOpacity } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import { BACK } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
-import { RadioButton } from 'react-native-paper'
+import RNPickerSelect from 'react-native-picker-select'
+import DateTimePickerModal from 'react-native-modal-datetime-picker'
 
 export default function AddVoucher({ navigation }: any) {
-    const [value, setValue] = React.useState('Credit');
+    const [selectedValue, setSelectedValue] = React.useState('')
+    const [date, setDate] = React.useState<Date | null>(null)
+    const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false)
+
+    const showDatePicker = () => setDatePickerVisibility(true)
+    const hideDatePicker = () => setDatePickerVisibility(false)
+
+    const handleConfirm = (selectedDate: Date) => {
+        setDate(selectedDate);
+        hideDatePicker();
+    }
+
+    const formatDate = (date: Date | null) => {
+        if (!date) return '';
+        return date.toLocaleDateString('en-GB'); // Change format if needed
+    }
+
     return (
         <>
-           
-                {<SafeAreaView style={styles.container} edges={['top']}>
-                    <LinearGradient
-                        colors={['#ec7d20', '#be2b2c']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={{ paddingTop: 20, paddingBottom: 20 }}
+            {<SafeAreaView style={styles.container} edges={['top']}>
+                <LinearGradient
+                    colors={['#ec7d20', '#be2b2c']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ paddingTop: 20, paddingBottom: 20 }}
+                >
+                    <Pressable
+                        onPress={() => navigation.goBack()}
+                        style={styles.back}
                     >
-                        <Pressable
-                            onPress={() => navigation.goBack()}
-                            style={styles.back}
-                        >
-                            <Image source={BACK} style={styles.backIcon} />
-                        </Pressable>
-                        <Text style={styles.heading}>Add Voucher</Text>
-                    </LinearGradient>
-                    <ScrollView style={styles.scrollView}>
-                        <View style={styles.whiteCard}>
-                            <View style={styles.gap}>
-                                <Text style={styles.label}>Account Code</Text>
-                                <View>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Enter Account Code"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.gap}>
-                                <Text style={styles.label}>Amount</Text>
-                                <View>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Enter Amount"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.gap}>
-                                <Text style={styles.label}>Narration</Text>
-                                <View>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Enter Narration"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.gap}>
-                                <RadioButton.Group onValueChange={setValue} value={value}>
-                                    <View style={styles.radioGroup}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <RadioButton value="Credit" color="#ec7d20" />
-                                            <Text>Credit</Text>
-                                        </View>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <RadioButton value="Debit" color="#ec7d20" />
-                                            <Text>Debit</Text>
-                                        </View>
-                                    </View>
-                                </RadioButton.Group>
-                            </View>
-                            <LinearGradient
-                                colors={['#ec7d20', '#be2b2c']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 0, y: 1 }}
-                                style={{ borderRadius: 50 }}
-                            >
-                                <Pressable
-                                    style={styles.addButton}
-                                >
-                                    <View>
-                                        <Text style={styles.buttonText}>Submit</Text>
-                                    </View>
-                                </Pressable>
-                            </LinearGradient>                            
+                        <Image source={BACK} style={styles.backIcon} />
+                    </Pressable>
+                    <Text style={styles.heading}>Add Voucher</Text>
+                </LinearGradient>
+                <ScrollView style={styles.scrollView}>
+                    <View style={styles.whiteCard}>
+                        <View style={styles.gap}>
+                            <Text style={styles.label}>Voucher Type</Text>
+                            <RNPickerSelect
+                                onValueChange={(value) => setSelectedValue(value)}
+                                placeholder={{ label: 'Select an option...', value: null }}
+                                items={[
+                                    { label: 'JV', value: 'Journal' },
+                                    { label: 'CV', value: 'Cash' },
+                                    { label: 'BV', value: 'Bank' },
+                                ]} 
+                                style={{
+                                    inputIOS: styles.input,
+                                    inputAndroid: styles.input,
+                                }}
+                                />
                         </View>
-                    </ScrollView>
-                </SafeAreaView>}
-        
+                        <View style={styles.gap}>
+                            <Text style={styles.label}>Date</Text>
+                            <TouchableOpacity onPress={showDatePicker} activeOpacity={0.8}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="DD/MM/YYYY"
+                                    value={formatDate(date)}
+                                    editable={false}
+                                    pointerEvents="none" // Prevent cursor on press
+                                />
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={isDatePickerVisible}
+                                mode="date"
+                                onConfirm={handleConfirm}
+                                onCancel={hideDatePicker}
+                                maximumDate={new Date()} // optional: prevent future dates
+                            />
+                        </View>
+                        <View style={styles.gap}>
+                            <Text style={styles.label}>Credit Account</Text>
+                            <RNPickerSelect
+                                onValueChange={(value) => setSelectedValue(value)}
+                                placeholder={{ label: 'Select an option...', value: null }}
+                                items={[
+                                    { label: 'JV', value: 'Journal' },
+                                    { label: 'CV', value: 'Cash' },
+                                    { label: 'BV', value: 'Bank' },
+                                ]} 
+                                style={{
+                                    inputIOS: styles.input,
+                                    inputAndroid: styles.input,
+                                }}
+                            />
+                        </View>
+                        <View style={styles.gap}>
+                            <Text style={styles.label}>Debit Account</Text>
+                            <RNPickerSelect
+                                onValueChange={(value) => setSelectedValue(value)}
+                                placeholder={{ label: 'Select an option...', value: null }}
+                                items={[
+                                    { label: 'JV', value: 'Journal' },
+                                    { label: 'CV', value: 'Cash' },
+                                    { label: 'BV', value: 'Bank' },
+                                ]} 
+                                style={{
+                                    inputIOS: styles.input,
+                                    inputAndroid: styles.input,
+                                }}
+                                />
+                        </View>
+                        <View style={styles.gap}>
+                             <Text style={styles.label}>Amount</Text>
+                            <View>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter Amount"
+                                />
+                            </View>
+                        </View>
+                        <View style={styles.gap}>
+                            <Text style={styles.label}>Narration</Text>
+                            <View>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter Narration"
+                                />
+                            </View>
+                        </View>
+                        <LinearGradient
+                            colors={['#ec7d20', '#be2b2c']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={{ borderRadius: 50 }}
+                        >
+                            <Pressable
+                                style={styles.addButton}
+                            >
+                                <View>
+                                    <Text style={styles.buttonText}>Submit</Text>
+                                </View>
+                            </Pressable>
+                        </LinearGradient>                            
+                    </View>
+                </ScrollView>
+            </SafeAreaView>}        
         </>
     )
 }
@@ -175,3 +234,28 @@ const styles = StyleSheet.create({
         fontWeight: '500'
     }
 })
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30,
+    backgroundColor: '#fff',
+    marginBottom: 20,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30,
+    backgroundColor: '#fff',
+    marginBottom: 20,
+  },
+});
