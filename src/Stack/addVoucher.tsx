@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BACK } from '../utils/imagePath';
 import { LinearGradient } from 'expo-linear-gradient';
-import RNPickerSelect from 'react-native-picker-select';
+import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import COLORS from '../../constants/color';
 import { AccountAPIUrls, voucherApiUrls } from '../services/api';
@@ -37,8 +37,6 @@ interface VoucherData {
     createdBy: number;
 }
 
-
-
 export default function AddVoucher({ navigation }: any) {
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [debitAccounts, setDebitAccounts] = useState<Account[]>([]);
@@ -55,7 +53,6 @@ export default function AddVoucher({ navigation }: any) {
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
 
     const fetchAccounts = async () => {
         try {
@@ -76,7 +73,6 @@ export default function AddVoucher({ navigation }: any) {
     };
 
     useEffect(() => {
-
         fetchAccounts();
     }, []);
 
@@ -157,17 +153,18 @@ export default function AddVoucher({ navigation }: any) {
                     {/* Voucher Type */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Voucher Type*</Text>
-                        <RNPickerSelect
-                            onValueChange={(value) => handleInputChange('voucherType', value)}
-                            value={formData.voucherType}
-                            placeholder={{ label: 'Select voucher type...', value: null }}
-                            items={[
-                                { label: 'Journal Voucher (JV)', value: 'Journal' },
-                                { label: 'Cash Voucher (CV)', value: 'Cash' },
-                                { label: 'Bank Voucher (BV)', value: 'Bank' },
-                            ]}
-                            style={pickerSelectStyles}
-                        />
+                        <View style={pickerSelectStyles.inputAndroid}>
+                            <Picker
+                                selectedValue={formData.voucherType}
+                                onValueChange={(value) => handleInputChange('voucherType', value)}
+                                style={{ color: COLORS.black }}
+                            >
+                                <Picker.Item label="Select voucher type..." value="" />
+                                <Picker.Item label="Journal Voucher (JV)" value="Journal" />
+                                <Picker.Item label="Cash Voucher (CV)" value="Cash" />
+                                <Picker.Item label="Bank Voucher (BV)" value="Bank" />
+                            </Picker>
+                        </View>
                     </View>
 
                     {/* Date */}
@@ -194,31 +191,43 @@ export default function AddVoucher({ navigation }: any) {
                     {/* Debit Account */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Debit Account*</Text>
-                        <RNPickerSelect
-                            onValueChange={(value) => handleInputChange('drAccountId', value)}
-                            value={formData.drAccountId}
-                            placeholder={{ label: 'Select debit account...', value: null }}
-                            items={debitAccounts.map(account => ({
-                                label: `${account.name} (${account.shortCode})`,
-                                value: account.accountId
-                            }))}
-                            style={pickerSelectStyles}
-                        />
+                        <View style={pickerSelectStyles.inputAndroid}>
+                            <Picker
+                                selectedValue={formData.drAccountId}
+                                onValueChange={(value) => handleInputChange('drAccountId', value)}
+                                style={{ color: COLORS.black }}
+                            >
+                                <Picker.Item label="Select debit account..." value={0} />
+                                {debitAccounts.map((account) => (
+                                    <Picker.Item 
+                                        key={account.accountId} 
+                                        label={`${account.name} (${account.shortCode})`} 
+                                        value={account.accountId} 
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
                     </View>
 
                     {/* Credit Account */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Credit Account*</Text>
-                        <RNPickerSelect
-                            onValueChange={(value) => handleInputChange('crAccountId', value)}
-                            value={formData.crAccountId}
-                            placeholder={{ label: 'Select credit account...', value: null }}
-                            items={creditAccounts.map(account => ({
-                                label: `${account.name} (${account.shortCode})`,
-                                value: account.accountId
-                            }))}
-                            style={pickerSelectStyles}
-                        />
+                        <View style={pickerSelectStyles.inputAndroid}>
+                            <Picker
+                                selectedValue={formData.crAccountId}
+                                onValueChange={(value) => handleInputChange('crAccountId', value)}
+                                style={{ color: COLORS.black }}
+                            >
+                                <Picker.Item label="Select credit account..." value={0} />
+                                {creditAccounts.map((account) => (
+                                    <Picker.Item 
+                                        key={account.accountId} 
+                                        label={`${account.name} (${account.shortCode})`} 
+                                        value={account.accountId} 
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
                     </View>
 
                     {/* Amount */}
@@ -356,23 +365,23 @@ const styles = StyleSheet.create({
     }
 });
 
-const pickerSelectStyles = {
-    inputIOS: {
-        height: 48,
-        borderWidth: 1,
-        borderColor: '#DFDFDF',
-        borderRadius: 4,
-        paddingLeft: 12,
-        paddingRight: 12,
-        marginBottom: 8,
-    },
+const pickerSelectStyles = StyleSheet.create({
     inputAndroid: {
         height: 48,
         borderWidth: 1,
         borderColor: '#DFDFDF',
         borderRadius: 4,
-        paddingLeft: 12,
-        paddingRight: 12,
+        paddingLeft: 8,
         marginBottom: 8,
+        justifyContent: 'center',
     },
-};
+    inputIOS: {
+        height: 48,
+        borderWidth: 1,
+        borderColor: '#DFDFDF',
+        borderRadius: 4,
+        paddingLeft: 8,
+        marginBottom: 8,
+        justifyContent: 'center',
+    },
+});
