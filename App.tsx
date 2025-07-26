@@ -1,9 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { LinearGradient } from 'expo-linear-gradient'
-
-
-
 import * as Sentry from '@sentry/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { enableScreens } from 'react-native-screens';
@@ -21,6 +18,8 @@ Sentry.init({
 });
 
 const Tab = createBottomTabNavigator();
+
+
 
 export default Sentry.wrap(function App() {
   return (
