@@ -1,5 +1,5 @@
 import COLORS from '../../constants/color'
-import { USER, ACCOUNTMASTER, VOUCHER, TRANSACTION, CONFIRM, AUDIT, ACCOUNTGROUP } from '../utils/imagePath'
+import { USER, ACCOUNTMASTER, VOUCHER, TRANSACTION, CONFIRM, AUDIT, ACCOUNTGROUP, LEDGER } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View, ScrollView, Image } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
@@ -130,7 +130,20 @@ export default function MobileAccounting({ navigation }: any) {
                     </View>
                     <Text style={[ styles.subheading, {minHeight: 70}]}>Groups Details</Text>
                   </LinearGradient>
-                </View>            
+                </View>    
+                <View style={styles.cardView}>
+                  <LinearGradient
+                    colors={['#fff4ec', '#f3f8fb']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ paddingTop: 16, paddingRight: 12, paddingBottom: 16, paddingLeft: 12, borderRadius: 7 }}
+                  >
+                    <View style={styles.iconCircle}>
+                      <Image source={LEDGER} style={styles.icon} />
+                    </View>
+                    <Text style={[ styles.subheading, {minHeight: 70}]}>General Ledger</Text>
+                  </LinearGradient>
+                </View>         
               </View>
             </ScrollView>
         </SafeAreaView>}

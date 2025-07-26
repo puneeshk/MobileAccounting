@@ -15,5 +15,6 @@ module.exports = {
   DOWNARROW: require('../assets/downArrow.png'),
   DASHBOARD: require('../assets/dashboard.png'),
   DASHBOARD_GREY: require('../assets/dashboardGrey.png'),
-  DASHBOARD_WHITE: require('../assets/dashboardWhite.png')
+  DASHBOARD_WHITE: require('../assets/dashboardWhite.png'),
+  LEDGER: require('../assets/ledger.png')
 }
