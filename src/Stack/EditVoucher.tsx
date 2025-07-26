@@ -19,10 +19,11 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import COLORS from '../../constants/color';
 import { AccountAPIUrls, voucherApiUrls } from '../services/api';
 import axiosInstance from '../config/axios';
-import { useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
-type RouteParams = {
-  voucherId: number;
+// Define types
+type EditVoucherRouteParams = {
+    voucherId: number;
 };
 
 interface Account {
@@ -36,77 +37,76 @@ interface VoucherData {
     voucherId?: number;
     voucherDate: string;
     voucherType: string;
+    createdBy: number;
     drAccountId: number;
     crAccountId: number;
     amount: number;
     narration: string;
-    createdBy: number;
 }
 
 export default function EditVoucher({ navigation }: any) {
-    const route = useRoute();
- const { voucherId } = route.params as RouteParams; 
-    
+    const route = useRoute<RouteProp<{ params: EditVoucherRouteParams }, 'params'>>();
+    const { voucherId } = route.params;
+
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [debitAccounts, setDebitAccounts] = useState<Account[]>([]);
     const [creditAccounts, setCreditAccounts] = useState<Account[]>([]);
     const [formData, setFormData] = useState<VoucherData>({
         voucherDate: new Date().toISOString(),
         voucherType: '',
+        createdBy: 1,
         drAccountId: 0,
         crAccountId: 0,
         amount: 0,
-        narration: '',
-        createdBy: 1
+        narration: ''
     });
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFetchingVoucher, setIsFetchingVoucher] = useState(false);
 
-   
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                setIsFetchingVoucher(true);               
-               
-                const accountsResponse = await axiosInstance.get(AccountAPIUrls.GET_ALL);
-                if (accountsResponse.data.success) {
-                    const allAccounts = accountsResponse.data.data;
-                    setAccounts(allAccounts);
-                    setDebitAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'dr'));
-                    setCreditAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'cr'));
-                }
-                
-              
-                if (voucherId) {
-                    const voucherResponse = await axiosInstance.get(
-                        `${voucherApiUrls.GET_SINGLE}/${voucherId}`
-                    );
-                    if (voucherResponse.data.success) {
-                        const voucher = voucherResponse.data.data;
-                        setFormData({
-                            voucherId: voucher.voucherId,
-                            voucherDate: voucher.voucherDate || new Date().toISOString(),
-                            voucherType: voucher.voucherType,
-                            drAccountId: voucher.drAccountId,
-                            crAccountId: voucher.crAccountId,
-                            amount: voucher.amount,
-                            narration: voucher.narration,
-                            createdBy: voucher.createdBy
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                Alert.alert('Error', 'Failed to load data');
-            } finally {
-                setIsLoading(false);
-                setIsFetchingVoucher(false);
+
+    const fetchData = async () => {
+
+        try {
+            setIsLoading(true);
+            const accountsResponse = await axiosInstance.get(AccountAPIUrls.GET_ALL);
+            if (accountsResponse.data.success) {
+                const allAccounts = accountsResponse.data.data;
+                setAccounts(allAccounts);
+                setDebitAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'dr'));
+                setCreditAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'cr'));
             }
-        };
-        
+
+            if (voucherId) {
+                const voucherResponse = await axiosInstance.get(
+                    `${voucherApiUrls.GET_SINGLE}/${voucherId}`
+                );
+                if (voucherResponse.data) {
+                    const voucher = voucherResponse.data.data;
+
+                    setFormData({
+                        voucherId: voucher.voucherId,
+                        voucherDate: voucher.date || new Date().toISOString(),
+                        voucherType: voucher.voucherType,
+                        createdBy: voucher.createdBy,
+                        drAccountId: voucher.drAccountId,
+                        crAccountId: voucher.crAccountId,
+                        amount: voucher.amount,
+                        narration: voucher.narration
+                    });
+
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            Alert.alert('Error', 'Failed to load data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+
         fetchData();
     }, [voucherId]);
 
@@ -147,42 +147,30 @@ export default function EditVoucher({ navigation }: any) {
 
         try {
             setIsSubmitting(true);
-            let response;
-            
-            if (formData.voucherId) {
-            
-                response = await axiosInstance.put(
-                    `${voucherApiUrls.UPDATE}/${formData.voucherId}`,
-                    formData
-                );
-            } else {
-                // Create new voucher
-                response = await axiosInstance.post(voucherApiUrls.CREATE, formData);
-            }
+            const response = await axiosInstance.post(
+                voucherApiUrls.UPDATE,
+                formData
+            );
 
             if (response.data) {
                 Alert.alert(
-                    'Success', 
-                    formData.voucherId 
-                        ? 'Voucher updated successfully' 
-                        : 'Voucher created successfully'
+                    'Success',
+                    'Voucher updated successfully'
                 );
                 navigation.goBack();
             }
         } catch (error) {
             console.error('Error saving voucher:', error);
             Alert.alert(
-                'Error', 
-                formData.voucherId 
-                    ? 'Failed to update voucher' 
-                    : 'Failed to create voucher'
+                'Error',
+                voucherId ? 'Failed to update voucher' : 'Failed to create voucher'
             );
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    if (isLoading || isFetchingVoucher) {
+    if (isLoading) {
         return (
             <SafeAreaView style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
@@ -202,13 +190,13 @@ export default function EditVoucher({ navigation }: any) {
                     <Image source={BACK} style={styles.backIcon} />
                 </Pressable>
                 <Text style={styles.heading}>
-                Edit Voucher
+                    Edit Voucher
                 </Text>
             </LinearGradient>
 
             <ScrollView style={styles.scrollView}>
                 <View style={styles.whiteCard}>
-          
+                    {/* Voucher Type */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Voucher Type*</Text>
                         <View style={pickerSelectStyles.inputAndroid}>
@@ -258,10 +246,10 @@ export default function EditVoucher({ navigation }: any) {
                             >
                                 <Picker.Item label="Select debit account..." value={0} />
                                 {debitAccounts.map((account) => (
-                                    <Picker.Item 
-                                        key={account.accountId} 
-                                        label={`${account.name} (${account.shortCode})`} 
-                                        value={account.accountId} 
+                                    <Picker.Item
+                                        key={account.accountId}
+                                        label={`${account.name} (${account.shortCode})`}
+                                        value={account.accountId}
                                     />
                                 ))}
                             </Picker>
@@ -279,17 +267,17 @@ export default function EditVoucher({ navigation }: any) {
                             >
                                 <Picker.Item label="Select credit account..." value={0} />
                                 {creditAccounts.map((account) => (
-                                    <Picker.Item 
-                                        key={account.accountId} 
-                                        label={`${account.name} (${account.shortCode})`} 
-                                        value={account.accountId} 
+                                    <Picker.Item
+                                        key={account.accountId}
+                                        label={`${account.name} (${account.shortCode})`}
+                                        value={account.accountId}
                                     />
                                 ))}
                             </Picker>
                         </View>
                     </View>
 
-                
+                    {/* Amount */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Amount*</Text>
                         <TextInput
@@ -301,6 +289,7 @@ export default function EditVoucher({ navigation }: any) {
                         />
                     </View>
 
+                    {/* Narration */}
                     <View style={styles.gap}>
                         <Text style={styles.label}>Narration</Text>
                         <TextInput
@@ -312,7 +301,7 @@ export default function EditVoucher({ navigation }: any) {
                         />
                     </View>
 
-               
+                    {/* Submit Button */}
                     <LinearGradient
                         colors={['#ec7d20', '#be2b2c']}
                         start={{ x: 0, y: 0 }}
@@ -328,7 +317,7 @@ export default function EditVoucher({ navigation }: any) {
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <Text style={styles.buttonText}>
-                                    {formData.voucherId ? 'Update' : 'Submit'}
+                                    {voucherId ? 'Update Voucher' : 'Create Voucher'}
                                 </Text>
                             )}
                         </Pressable>
