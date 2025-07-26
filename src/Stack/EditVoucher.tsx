@@ -69,8 +69,7 @@ export default function EditVoucher({ navigation }: any) {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                setIsFetchingVoucher(true);
-                
+                setIsFetchingVoucher(true);               
                
                 const accountsResponse = await axiosInstance.get(AccountAPIUrls.GET_ALL);
                 if (accountsResponse.data.success) {

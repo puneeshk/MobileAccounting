@@ -88,11 +88,7 @@ export default function VoucherEntry({ navigation }: any) {
     }
   };
 
-
-
   const handleDelete = async () => {
-  
-    
     Alert.alert(
       'Confirm Delete',
       'Are you sure you want to delete this voucher?',
@@ -140,7 +136,7 @@ export default function VoucherEntry({ navigation }: any) {
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
       </SafeAreaView>
-    );
+    )
   }
 
   return (
@@ -169,15 +165,18 @@ export default function VoucherEntry({ navigation }: any) {
         <Feather name="plus" color="#fff" size={20} />
       </Pressable>
 
-      <View style={styles.searchbar}>
-        <TextInput
-          style={styles.input}
-          placeholder="Search"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <Feather name="search" color="#ec7e1d" size={24} style={styles.searchIcon} />
-      </View>
+      <View style={styles.topbar}>
+        <View style={styles.searchbar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Feather name="search" color="#ec7e1d" size={24} style={styles.searchIcon} />
+        </View>
+        <Feather name="filter" color="#ec7e1d" size={20} />
+      </View>      
 
       <ScrollView style={styles.scrollView}>
         {filteredVouchers.map((voucher) => (
@@ -187,56 +186,31 @@ export default function VoucherEntry({ navigation }: any) {
           >
             <View style={styles.whiteCard}>
               <View style={styles.rowColumn}>
-                <Text style={styles.label}>Voucher ID</Text>
-                <Text style={styles.valueText}>{voucher.voucherId}</Text>
-              </View>
-
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Date</Text>
-                <Text style={styles.valueText}>{formatDate(voucher.date)}</Text>
-              </View>
-
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Type</Text>
                 <Text style={styles.valueText}>{voucher.vouType}</Text>
-              </View>
-
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Debit Account</Text>
-                <Text style={styles.valueText}>{voucher.drAccount}</Text>
-              </View>
-
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Credit Account</Text>
-                <Text style={styles.valueText}>{voucher.crAccount}</Text>
-              </View>
-
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Amount</Text>
-                <Text style={styles.valueText}>
-                  <Image
-                    source={voucher.drCr === 'Dr' ? UPARROW : DOWNARROW}
-                    style={styles.upArrow}
-                  />
+                <Text style={[styles.valueText, {textAlign: 'center'}]}>{formatDate(voucher.date)}</Text>
+                <Text style={[styles.valueText, {textAlign: 'right'}]}>
                   {formatCurrency(voucher.amount)}
                 </Text>
               </View>
-
               <View style={styles.rowColumn}>
-                <Text style={styles.label}>Narration</Text>
-                <Text style={styles.valueText}>
-                  {voucher.narration || '-'}
+                <Text style={[styles.valueText, {color: '#db0500'}]}>
+                  <Image
+                    source={UPARROW}
+                    style={styles.upArrow}
+                  /> &nbsp;
+                  {voucher.drAccount}
+                  </Text>
+                <Text style={[styles.valueText, {color: '#04a029', textAlign: 'right'}]}>
+                  <Image
+                    source={DOWNARROW}
+                    style={styles.upArrow}
+                  /> &nbsp;
+                  {voucher.crAccount}
                 </Text>
               </View>
 
-              <View style={styles.rowColumn}>
-                <Text style={styles.label}>Status</Text>
-                <Text style={[
-                  styles.valueText,
-                  { color: voucher.confirmed ? COLORS.success : COLORS.warning }
-                ]}>
-                  {voucher.confirmed ? 'Confirmed' : 'Pending'}
-                </Text>
+              <View style={[styles.rowColumn, {marginBottom: 0}]}>
+                <Text style={styles.valueText}>{voucher.narration || '-'}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -314,11 +288,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center'
   },
-  searchbar: {
+  topbar: {
     backgroundColor: '#ececec',
     paddingTop: 16,
     paddingLeft: 16,
     paddingRight: 16,
+    gap: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+    display: 'flex'
+  },
+  searchbar: {
+    flex: 1
+  },
+  filter: {
+
   },
   add: {
     backgroundColor: '#cd4a26',
@@ -375,21 +359,13 @@ const styles = StyleSheet.create({
   rowColumn: {
     marginBottom: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  label: {
-    color: COLORS.lightGrey,
-    fontSize: 13,
-    fontWeight: '400',
-    flex: 1,
   },
   valueText: {
     color: COLORS.black,
     fontSize: 13,
     fontWeight: '500',
     flex: 1,
-    textAlign: 'right',
   },
   upArrow: {
     width: 8,
