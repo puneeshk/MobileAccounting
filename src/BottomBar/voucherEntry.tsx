@@ -1,16 +1,17 @@
-import React, { useCallback,  useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import COLORS from '../../constants/color';
-import { 
-  Pressable, 
-  StyleSheet, 
-  Text, 
-  View, 
-  ScrollView, 
-  Image, 
-  TextInput, 
-  ActivityIndicator, 
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  TextInput,
+  ActivityIndicator,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BACK, UPARROW, DOWNARROW } from '../utils/imagePath';
@@ -38,17 +39,19 @@ export default function VoucherEntry({ navigation }: any) {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+  const [showActionSheet, setShowActionSheet] = useState(false);
 
   const fetchVouchers = async () => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.post(voucherApiUrls.GET_ALL ,{
+      const response = await axiosInstance.post(voucherApiUrls.GET_ALL, {
         voucherType: "",
         fromDate: null,
         toDate: null,
         createdBy: 0
       });
-      
+
       if (response.data.success) {
         setVouchers(response.data.data);
       }
@@ -73,6 +76,53 @@ export default function VoucherEntry({ navigation }: any) {
     }).format(amount);
   };
 
+  const handleVoucherPress = (voucher: Voucher) => {
+    setSelectedVoucher(voucher);
+    setShowActionSheet(true);
+  };
+
+  const handleEdit = () => {
+    if (selectedVoucher) {
+      setShowActionSheet(false);
+      navigation.navigate('EditVoucher', { voucherId: selectedVoucher.voucherId });
+    }
+  };
+
+
+
+  const handleDelete = async () => {
+  
+    
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this voucher?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete', onPress: async () => {
+            try {
+              setIsLoading(true);
+              const response = await axiosInstance.post(voucherApiUrls.DELETE, {
+                voucherId: selectedVoucher?.voucherId,
+                deletedBy: 1
+              });
+
+              if (response.data.success) {
+                Alert.alert('Success', 'Voucher deleted successfully');
+                fetchVouchers();
+              }
+            } catch (error) {
+              console.error('Error deleting voucher:', error);
+              Alert.alert('Error', 'Failed to delete voucher');
+            } finally {
+              setIsLoading(false);
+              setShowActionSheet(false);
+            }
+          }
+        },
+      ]
+    );
+  };
   useFocusEffect(
     useCallback(() => {
       fetchVouchers();
@@ -130,55 +180,55 @@ export default function VoucherEntry({ navigation }: any) {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {filteredVouchers.map((voucher, index) => (
-          <TouchableOpacity 
-            key={voucher.voucherId} 
-            // onPress={() => navigation.navigate('VoucherDetail', { voucherId: voucher.voucherId })}
+        {filteredVouchers.map((voucher) => (
+          <TouchableOpacity
+            key={voucher.voucherId}
+            onPress={() => handleVoucherPress(voucher)}
           >
             <View style={styles.whiteCard}>
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Voucher ID</Text>
                 <Text style={styles.valueText}>{voucher.voucherId}</Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Date</Text>
                 <Text style={styles.valueText}>{formatDate(voucher.date)}</Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Type</Text>
                 <Text style={styles.valueText}>{voucher.vouType}</Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Debit Account</Text>
                 <Text style={styles.valueText}>{voucher.drAccount}</Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Credit Account</Text>
                 <Text style={styles.valueText}>{voucher.crAccount}</Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Amount</Text>
                 <Text style={styles.valueText}>
-                  <Image 
-                    source={voucher.drCr === 'Dr' ? UPARROW : DOWNARROW} 
-                    style={styles.upArrow} 
+                  <Image
+                    source={voucher.drCr === 'Dr' ? UPARROW : DOWNARROW}
+                    style={styles.upArrow}
                   />
                   {formatCurrency(voucher.amount)}
                 </Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Narration</Text>
                 <Text style={styles.valueText}>
                   {voucher.narration || '-'}
                 </Text>
               </View>
-              
+
               <View style={styles.rowColumn}>
                 <Text style={styles.label}>Status</Text>
                 <Text style={[
@@ -192,6 +242,51 @@ export default function VoucherEntry({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Action Sheet Modal */}
+      <Modal
+        visible={showActionSheet}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowActionSheet(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowActionSheet(false)}
+        >
+          <View style={styles.actionSheetContainer}>
+            <View style={styles.actionSheet}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleEdit}
+              >
+                <Feather name="edit" size={20} color={COLORS.primary} />
+                <Text style={styles.actionButtonText}>Edit Voucher</Text>
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.deleteButton]}
+                onPress={handleDelete}
+              >
+                <Feather name="trash-2" size={20} color={COLORS.error} />
+                <Text style={[styles.actionButtonText, { color: COLORS.error }]}>Delete Voucher</Text>
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowActionSheet(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 }
@@ -306,5 +401,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.white
-  }
+  },
+  // Action Sheet Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  actionSheetContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+  },
+  actionSheet: {
+    paddingBottom: 24,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    marginLeft: 16,
+    color: COLORS.black,
+  },
+  deleteButton: {
+    marginTop: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.lightGrey,
+    marginVertical: 4,
+  },
+  cancelButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
 });

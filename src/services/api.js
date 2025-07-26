@@ -8,5 +8,8 @@ export const AccountAPIUrls = {
 
 export const voucherApiUrls = {
   GET_ALL: "/api/Voucher/summary",
+  GET_SINGLE: "/api/Voucher/getvoucher-by-id",
   CREATE: "/api/Voucher/save",
+  UPDATE: "/api/Voucher/save",
+  DELETE: "/api/Voucher/delete",
 }

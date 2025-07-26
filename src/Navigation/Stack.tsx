@@ -4,6 +4,7 @@ import AddAccount from '../Stack/addAccount'
 import AddVoucher from '../Stack/addVoucher'
 import EditAccount from '../Stack/EditAccount'
 import TabNavigator from "./Tab"
+import EditVoucher from "../Stack/EditVoucher"
 
 
 const Stack = createNativeStackNavigator();
@@ -39,6 +40,13 @@ function StackNavigator() {
           headerShown: false
         }}
       />      
+        <Stack.Screen
+        name="EditVoucher"
+        component={EditVoucher}
+        options={{
+          headerShown: false
+        }}
+      />    
     </Stack.Navigator>
   )
 }
