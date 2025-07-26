@@ -6,6 +6,7 @@ import { BACK } from '../utils/imagePath'
 import { LinearGradient } from 'expo-linear-gradient'
 import { RadioButton } from 'react-native-paper'
 import axiosInstance from '../config/axios'
+import { AccountAPIUrls } from '../services/api'
 
 export default function AddAccount({ navigation }: any) {
     const [value, setValue] = useState('cr');
@@ -26,14 +27,11 @@ export default function AddAccount({ navigation }: any) {
             Alert.alert('Error', 'Please enter a valid opening balance');
             return;
         }
-
-
-        // const adjustedBalance = value === 'Debit' ? -Math.abs(balance) : Math.abs(balance);
-        console.log(value);
+        
         
         try {
             setIsLoading(true);
-            const res = await axiosInstance.post("/api/AccountMaster/save", {
+            const res = await axiosInstance.post(AccountAPIUrls.CREATE, {
                 shortCode,
                 name,
                 drcr: value,
@@ -41,7 +39,7 @@ export default function AddAccount({ navigation }: any) {
                 createdBy: 1, 
                 createdAt: new Date().toISOString()
             });
-            console.log(res);
+            ;
             
             if (res.data) {
                 Alert.alert('Success', 'Account added successfully');

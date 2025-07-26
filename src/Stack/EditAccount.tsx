@@ -16,13 +16,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ActivityIndicator, RadioButton } from "react-native-paper";
 import axiosInstance from "../config/axios";
 import { useRoute } from "@react-navigation/native";
+import { AccountAPIUrls } from "../services/api";
 
 type RouteParams = {
     account: {
         accountId: number;
         shortCode: string;
         name: string;
-        drcr: string, 
+        drcr: string,
         openingBalance: number;
     };
 };
@@ -48,16 +49,16 @@ export default function EditAccount({ navigation }: any) {
             Alert.alert('Error', 'Please enter a valid opening balance');
             return;
         }
-   
+
         try {
             setIsLoading(true);
-            const res = await axiosInstance.post("/api/AccountMaster/save", {
+            const res = await axiosInstance.post(AccountAPIUrls.UPDATE, {
                 accountId: id,
                 shortCode,
                 name,
                 drcr: value,
                 openingBalance: balance,
-                createdBy: 1, 
+                createdBy: 1,
                 createdAt: new Date().toISOString()
             });
             if (res.data) {
@@ -68,12 +69,12 @@ export default function EditAccount({ navigation }: any) {
             console.log("Error in Edit account", error);
             Alert.alert('Error', 'Failed to Edit account');
         } finally {
-          setIsLoading(false)
+            setIsLoading(false)
         }
     };
 
     const getEditAccount = async () => {
-        
+
         try {
             setLoading(true);
             const response = await axiosInstance.get(`/api/AccountMaster/list`, {
@@ -81,12 +82,12 @@ export default function EditAccount({ navigation }: any) {
                     accountId: id,
                 }
             });
-            
+
             const accountData = response.data.data[0];
             setShortCode(accountData.shortCode);
             setName(accountData.name);
             setOpeningBalance(Math.abs(accountData.openingBalance).toString());
-            setValue(accountData.drcr)                                                                    
+            setValue(accountData.drcr)
         } catch (error) {
             console.error("Error fetching account:", error);
         } finally {
@@ -150,7 +151,7 @@ export default function EditAccount({ navigation }: any) {
                             </View>
                         </View>
                         <View style={styles.gap}>
-                            <RadioButton.Group  onValueChange={setValue} value={value}>
+                            <RadioButton.Group onValueChange={setValue} value={value}>
                                 <View style={styles.radioGroup}>
                                     <View
                                         style={{ flexDirection: "row", alignItems: "center" }}

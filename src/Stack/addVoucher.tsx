@@ -1,153 +1,273 @@
-import * as React from 'react'
-import COLORS from '../../constants/color'
-import { Pressable, StyleSheet, Text, TextInput, View, ScrollView, Image, TouchableOpacity } from 'react-native'
-import {SafeAreaView} from 'react-native-safe-area-context'
-import { BACK } from '../utils/imagePath'
-import { LinearGradient } from 'expo-linear-gradient'
-import RNPickerSelect from 'react-native-picker-select'
-import DateTimePickerModal from 'react-native-modal-datetime-picker'
+import React, { useState, useEffect } from 'react';
+import {
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+    ScrollView,
+    Image,
+    TouchableOpacity,
+    Alert,
+    ActivityIndicator
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BACK } from '../utils/imagePath';
+import { LinearGradient } from 'expo-linear-gradient';
+import RNPickerSelect from 'react-native-picker-select';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import COLORS from '../../constants/color';
+import { AccountAPIUrls, voucherApiUrls } from '../services/api';
+import axiosInstance from '../config/axios';
+
+interface Account {
+    accountId: number;
+    name: string;
+    shortCode: string;
+    drcr: 'dr' | 'cr';
+}
+
+interface VoucherData {
+    voucherDate: string;
+    voucherType: string;
+    drAccountId: number;
+    crAccountId: number;
+    amount: number;
+    narration: string;
+    createdBy: number;
+}
+
+
 
 export default function AddVoucher({ navigation }: any) {
-    const [selectedValue, setSelectedValue] = React.useState('')
-    const [date, setDate] = React.useState<Date | null>(null)
-    const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false)
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [debitAccounts, setDebitAccounts] = useState<Account[]>([]);
+    const [creditAccounts, setCreditAccounts] = useState<Account[]>([]);
+    const [formData, setFormData] = useState<VoucherData>({
+        voucherDate: new Date().toISOString(),
+        voucherType: '',
+        drAccountId: 0,
+        crAccountId: 0,
+        amount: 0,
+        narration: '',
+        createdBy: 1
+    });
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const showDatePicker = () => setDatePickerVisibility(true)
-    const hideDatePicker = () => setDatePickerVisibility(false)
 
-    const handleConfirm = (selectedDate: Date) => {
-        setDate(selectedDate);
+    const fetchAccounts = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axiosInstance.get(AccountAPIUrls.GET_ALL);
+            if (response.data.success) {
+                const allAccounts = response.data.data;
+                setAccounts(allAccounts);
+                setDebitAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'dr'));
+                setCreditAccounts(allAccounts.filter((acc: Account) => acc.drcr === 'cr'));
+            }
+        } catch (error) {
+            console.error('Error fetching accounts:', error);
+            Alert.alert('Error', 'Failed to load accounts');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+
+        fetchAccounts();
+    }, []);
+
+    const showDatePicker = () => setDatePickerVisibility(true);
+    const hideDatePicker = () => setDatePickerVisibility(false);
+
+    const handleDateConfirm = (selectedDate: Date) => {
+        setFormData({ ...formData, voucherDate: selectedDate.toISOString() });
         hideDatePicker();
-    }
+    };
 
-    const formatDate = (date: Date | null) => {
-        if (!date) return '';
-        return date.toLocaleDateString('en-GB'); // Change format if needed
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-GB');
+    };
+
+    const handleInputChange = (field: keyof VoucherData, value: any) => {
+        setFormData({ ...formData, [field]: value });
+    };
+
+    const handleSubmit = async () => {
+        if (!formData.voucherType) {
+            Alert.alert('Error', 'Please select voucher type');
+            return;
+        }
+        if (!formData.drAccountId) {
+            Alert.alert('Error', 'Please select debit account');
+            return;
+        }
+        if (!formData.crAccountId) {
+            Alert.alert('Error', 'Please select credit account');
+            return;
+        }
+        if (formData.amount <= 0) {
+            Alert.alert('Error', 'Please enter valid amount');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            const response = await axiosInstance.post(voucherApiUrls.CREATE, formData);
+            if (response.data) {
+                Alert.alert('Success', 'Voucher created successfully');
+                navigation.goBack();
+            }
+        } catch (error) {
+            console.error('Error creating voucher:', error);
+            Alert.alert('Error', 'Failed to create voucher');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+            </SafeAreaView>
+        );
     }
 
     return (
-        <>
-            {<SafeAreaView style={styles.container} edges={['top']}>
-                <LinearGradient
-                    colors={['#ec7d20', '#be2b2c']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={{ paddingTop: 20, paddingBottom: 20 }}
-                >
-                    <Pressable
-                        onPress={() => navigation.goBack()}
-                        style={styles.back}
-                    >
-                        <Image source={BACK} style={styles.backIcon} />
-                    </Pressable>
-                    <Text style={styles.heading}>Add Voucher</Text>
-                </LinearGradient>
-                <ScrollView style={styles.scrollView}>
-                    <View style={styles.whiteCard}>
-                        <View style={styles.gap}>
-                            <Text style={styles.label}>Voucher Type</Text>
-                            <RNPickerSelect
-                                onValueChange={(value) => setSelectedValue(value)}
-                                placeholder={{ label: 'Select an option...', value: null }}
-                                items={[
-                                    { label: 'JV', value: 'Journal' },
-                                    { label: 'CV', value: 'Cash' },
-                                    { label: 'BV', value: 'Bank' },
-                                ]} 
-                                style={{
-                                    inputIOS: styles.input,
-                                    inputAndroid: styles.input,
-                                }}
-                                />
-                        </View>
-                        <View style={styles.gap}>
-                            <Text style={styles.label}>Date</Text>
-                            <TouchableOpacity onPress={showDatePicker} activeOpacity={0.8}>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="DD/MM/YYYY"
-                                    value={formatDate(date)}
-                                    editable={false}
-                                    pointerEvents="none" // Prevent cursor on press
-                                />
-                            </TouchableOpacity>
-                            <DateTimePickerModal
-                                isVisible={isDatePickerVisible}
-                                mode="date"
-                                onConfirm={handleConfirm}
-                                onCancel={hideDatePicker}
-                                maximumDate={new Date()} // optional: prevent future dates
-                            />
-                        </View>
-                        <View style={styles.gap}>
-                            <Text style={styles.label}>Credit Account</Text>
-                            <RNPickerSelect
-                                onValueChange={(value) => setSelectedValue(value)}
-                                placeholder={{ label: 'Select an option...', value: null }}
-                                items={[
-                                    { label: 'JV', value: 'Journal' },
-                                    { label: 'CV', value: 'Cash' },
-                                    { label: 'BV', value: 'Bank' },
-                                ]} 
-                                style={{
-                                    inputIOS: styles.input,
-                                    inputAndroid: styles.input,
-                                }}
-                            />
-                        </View>
-                        <View style={styles.gap}>
-                            <Text style={styles.label}>Debit Account</Text>
-                            <RNPickerSelect
-                                onValueChange={(value) => setSelectedValue(value)}
-                                placeholder={{ label: 'Select an option...', value: null }}
-                                items={[
-                                    { label: 'JV', value: 'Journal' },
-                                    { label: 'CV', value: 'Cash' },
-                                    { label: 'BV', value: 'Bank' },
-                                ]} 
-                                style={{
-                                    inputIOS: styles.input,
-                                    inputAndroid: styles.input,
-                                }}
-                                />
-                        </View>
-                        <View style={styles.gap}>
-                             <Text style={styles.label}>Amount</Text>
-                            <View>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter Amount"
-                                />
-                            </View>
-                        </View>
-                        <View style={styles.gap}>
-                            <Text style={styles.label}>Narration</Text>
-                            <View>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter Narration"
-                                />
-                            </View>
-                        </View>
-                        <LinearGradient
-                            colors={['#ec7d20', '#be2b2c']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={{ borderRadius: 50 }}
-                        >
-                            <Pressable
-                                style={styles.addButton}
-                            >
-                                <View>
-                                    <Text style={styles.buttonText}>Submit</Text>
-                                </View>
-                            </Pressable>
-                        </LinearGradient>                            
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <LinearGradient
+                colors={['#ec7d20', '#be2b2c']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{ paddingTop: 20, paddingBottom: 20 }}
+            >
+                <Pressable onPress={() => navigation.goBack()} style={styles.back}>
+                    <Image source={BACK} style={styles.backIcon} />
+                </Pressable>
+                <Text style={styles.heading}>Add Voucher</Text>
+            </LinearGradient>
+
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.whiteCard}>
+                    {/* Voucher Type */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Voucher Type*</Text>
+                        <RNPickerSelect
+                            onValueChange={(value) => handleInputChange('voucherType', value)}
+                            value={formData.voucherType}
+                            placeholder={{ label: 'Select voucher type...', value: null }}
+                            items={[
+                                { label: 'Journal Voucher (JV)', value: 'Journal' },
+                                { label: 'Cash Voucher (CV)', value: 'Cash' },
+                                { label: 'Bank Voucher (BV)', value: 'Bank' },
+                            ]}
+                            style={pickerSelectStyles}
+                        />
                     </View>
-                </ScrollView>
-            </SafeAreaView>}        
-        </>
-    )
+
+                    {/* Date */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Date*</Text>
+                        <TouchableOpacity onPress={showDatePicker} activeOpacity={0.8}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="DD/MM/YYYY"
+                                value={formatDate(formData.voucherDate)}
+                                editable={false}
+                                pointerEvents="none"
+                            />
+                        </TouchableOpacity>
+                        <DateTimePickerModal
+                            isVisible={isDatePickerVisible}
+                            mode="date"
+                            onConfirm={handleDateConfirm}
+                            onCancel={hideDatePicker}
+                            maximumDate={new Date()}
+                        />
+                    </View>
+
+                    {/* Debit Account */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Debit Account*</Text>
+                        <RNPickerSelect
+                            onValueChange={(value) => handleInputChange('drAccountId', value)}
+                            value={formData.drAccountId}
+                            placeholder={{ label: 'Select debit account...', value: null }}
+                            items={debitAccounts.map(account => ({
+                                label: `${account.name} (${account.shortCode})`,
+                                value: account.accountId
+                            }))}
+                            style={pickerSelectStyles}
+                        />
+                    </View>
+
+                    {/* Credit Account */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Credit Account*</Text>
+                        <RNPickerSelect
+                            onValueChange={(value) => handleInputChange('crAccountId', value)}
+                            value={formData.crAccountId}
+                            placeholder={{ label: 'Select credit account...', value: null }}
+                            items={creditAccounts.map(account => ({
+                                label: `${account.name} (${account.shortCode})`,
+                                value: account.accountId
+                            }))}
+                            style={pickerSelectStyles}
+                        />
+                    </View>
+
+                    {/* Amount */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Amount*</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Amount"
+                            value={formData.amount > 0 ? formData.amount.toString() : ''}
+                            onChangeText={(text) => handleInputChange('amount', parseFloat(text) || 0)}
+                            keyboardType="numeric"
+                        />
+                    </View>
+
+                    {/* Narration */}
+                    <View style={styles.gap}>
+                        <Text style={styles.label}>Narration</Text>
+                        <TextInput
+                            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                            placeholder="Enter Narration"
+                            value={formData.narration}
+                            onChangeText={(text) => handleInputChange('narration', text)}
+                            multiline
+                        />
+                    </View>
+
+                    {/* Submit Button */}
+                    <LinearGradient
+                        colors={['#ec7d20', '#be2b2c']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={{ borderRadius: 50 }}
+                    >
+                        <Pressable
+                            style={styles.addButton}
+                            onPress={handleSubmit}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text style={styles.buttonText}>Submit</Text>
+                            )}
+                        </Pressable>
+                    </LinearGradient>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -175,7 +295,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         backgroundColor: COLORS.lightBlue,
-        height: '100%',    
+        height: '100%',
         paddingTop: 16,
         paddingLeft: 16,
         paddingRight: 16,
@@ -183,7 +303,7 @@ const styles = StyleSheet.create({
     },
     whiteCard: {
         backgroundColor: COLORS.white,
-        width: '100%',    
+        width: '100%',
         paddingTop: 16,
         paddingLeft: 16,
         paddingRight: 16,
@@ -214,15 +334,10 @@ const styles = StyleSheet.create({
         paddingLeft: 12,
         paddingRight: 12,
     },
-    radioGroup: {
-        gap: 16,
-        flexDirection: 'row',
-        display: 'flex'
-    },
     addButton: {
         width: '100%',
         height: 48,
-        color: COLORS.white,        
+        color: COLORS.white,
         borderRadius: 4,
         justifyContent: 'center',
         alignItems: 'center',
@@ -232,30 +347,32 @@ const styles = StyleSheet.create({
         color: COLORS.white,
         fontSize: 16,
         fontWeight: '500'
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.white
     }
-})
-
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30,
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
-  inputAndroid: {
-    fontSize: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30,
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
 });
+
+const pickerSelectStyles = {
+    inputIOS: {
+        height: 48,
+        borderWidth: 1,
+        borderColor: '#DFDFDF',
+        borderRadius: 4,
+        paddingLeft: 12,
+        paddingRight: 12,
+        marginBottom: 8,
+    },
+    inputAndroid: {
+        height: 48,
+        borderWidth: 1,
+        borderColor: '#DFDFDF',
+        borderRadius: 4,
+        paddingLeft: 12,
+        paddingRight: 12,
+        marginBottom: 8,
+    },
+};

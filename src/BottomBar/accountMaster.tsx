@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import COLORS from '../../constants/color';
 import { 
   Pressable, 
@@ -18,6 +18,7 @@ import Modal from 'react-native-modal';
 import Feather from '@react-native-vector-icons/feather';
 import axiosInstance from '../config/axios';
 import { useFocusEffect } from '@react-navigation/native';
+import { AccountAPIUrls } from '../services/api';
 
 type RouteParams = {
   accountId: number;
@@ -42,9 +43,7 @@ export default function AccountMaster({ navigation }: any) {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/AccountMaster/list');
-    
-       
+      const response = await axiosInstance.get(AccountAPIUrls.GET_ALL);       
       if (response.data.success) {
         setAccounts(response.data.data);
       }
@@ -59,7 +58,7 @@ export default function AccountMaster({ navigation }: any) {
   const deleteAccount = async (id: number) => {
     setIsVisible(false);
     try {
-      const res = await axiosInstance.delete(`/api/AccountMaster/${id}`);
+      const res = await axiosInstance.delete(AccountAPIUrls.DELETE(id));
       if (res.data.success) {
         Alert.alert("Success", "Account deleted successfully");
         fetchAccounts();
@@ -95,7 +94,6 @@ export default function AccountMaster({ navigation }: any) {
     setIsVisible(true);
   };
 
-  // CORRECTED ARROW ICON FUNCTION
   const getArrowIcon = (drcr: string) => {
     return drcr === "dr" ? UPARROW : DOWNARROW;
   };
