@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import COLORS from '../../constants/color';
+import React, { useCallback, useState } from 'react'
+import COLORS from '../../constants/color'
 import {
   Pressable,
   StyleSheet,
@@ -10,16 +10,17 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  TouchableOpacity,
-  Modal
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { BACK, UPARROW, DOWNARROW } from '../utils/imagePath';
-import { LinearGradient } from 'expo-linear-gradient';
-import Feather from '@react-native-vector-icons/feather';
-import axiosInstance from '../config/axios';
-import { useFocusEffect } from '@react-navigation/native';
-import { voucherApiUrls } from '../services/api';
+  TouchableOpacity
+} from 'react-native'
+import Modal from 'react-native-modal'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { BACK, UPARROW, DOWNARROW } from '../utils/imagePath'
+import { LinearGradient } from 'expo-linear-gradient'
+import Feather from '@react-native-vector-icons/feather'
+import axiosInstance from '../config/axios'
+import { useFocusEffect } from '@react-navigation/native'
+import { voucherApiUrls } from '../services/api'
+import DateTimePickerModal from 'react-native-modal-datetime-picker'
 
 interface Voucher {
   voucherId: number;
@@ -36,11 +37,22 @@ interface Voucher {
 }
 
 export default function VoucherEntry({ navigation }: any) {
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [date, setDate] = useState<Date | null>(null);
+  const [vouchers, setVouchers] = useState<Voucher[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null)
+  const [showActionSheet, setShowActionSheet] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false)
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
+
+  const showDatePicker = () => setDatePickerVisibility(true)
+  const hideDatePicker = () => setDatePickerVisibility(false)
+
+  const handleDateConfirm = (selectedDate: Date) => {
+    setDate(selectedDate)
+    hideDatePicker()
+  }
 
   const fetchVouchers = async () => {
     try {
@@ -50,7 +62,7 @@ export default function VoucherEntry({ navigation }: any) {
         fromDate: null,
         toDate: null,
         createdBy: 0
-      });
+      })
 
       if (response.data.success) {
         setVouchers(response.data.data);
@@ -59,14 +71,19 @@ export default function VoucherEntry({ navigation }: any) {
       console.error('Error fetching vouchers:', error);
       Alert.alert('Error', 'Failed to load vouchers');
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
-  };
+  }
+
+  const filterFormatDate = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-GB'); // Change format if needed
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -74,19 +91,19 @@ export default function VoucherEntry({ navigation }: any) {
       currency: 'INR',
       minimumFractionDigits: 2
     }).format(amount);
-  };
+  }
 
   const handleVoucherPress = (voucher: Voucher) => {
     setSelectedVoucher(voucher);
     setShowActionSheet(true);
-  };
+  }
 
   const handleEdit = () => {
     if (selectedVoucher) {
       setShowActionSheet(false);
       navigation.navigate('EditVoucher', { voucherId: selectedVoucher.voucherId });
     }
-  };
+  }
 
   const handleDelete = async () => {
     Alert.alert(
@@ -117,19 +134,19 @@ export default function VoucherEntry({ navigation }: any) {
           }
         },
       ]
-    );
-  };
+    )
+  }
   useFocusEffect(
     useCallback(() => {
       fetchVouchers();
     }, [])
-  );
+  )
 
   const filteredVouchers = vouchers.filter(voucher =>
     voucher.drAccount.toLowerCase().includes(searchQuery.toLowerCase()) ||
     voucher.crAccount.toLowerCase().includes(searchQuery.toLowerCase()) ||
     voucher.narration.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  )
 
   if (isLoading) {
     return (
@@ -175,12 +192,16 @@ export default function VoucherEntry({ navigation }: any) {
           />
           <Feather name="search" color="#ec7e1d" size={24} style={styles.searchIcon} />
         </View>
-        <Feather name="filter" color="#ec7e1d" size={20} />
+        <Pressable
+          onPress={() => setShowFilterModal(true)}
+        >
+          <Feather name="filter" color="#ec7e1d" size={20} />
+        </Pressable>        
       </View>      
 
       <ScrollView style={styles.scrollView}>
         {filteredVouchers.map((voucher) => (
-          <TouchableOpacity
+          <Pressable
             key={voucher.voucherId}
             onPress={() => handleVoucherPress(voucher)}
           >
@@ -213,61 +234,123 @@ export default function VoucherEntry({ navigation }: any) {
                 <Text style={styles.valueText}>{voucher.narration || '-'}</Text>
               </View>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </ScrollView>
 
-      {/* Action Sheet Modal */}
       <Modal
-        visible={showActionSheet}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowActionSheet(false)}
+        isVisible={showFilterModal}
+        onBackdropPress={() => setShowFilterModal(false)}
+        style={styles.bottomModal}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowActionSheet(false)}
-        >
-          <View style={styles.actionSheetContainer}>
-            <View style={styles.actionSheet}>
-              <TouchableOpacity
-                style={styles.actionButton}
+        <View style={styles.modalContent}>
+          <View style={styles.gap}>
+            <Text style={styles.label}>From Date</Text>
+              <TouchableOpacity onPress={showDatePicker} activeOpacity={0.8}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="DD/MM/YYYY"
+                  value={filterFormatDate(date)}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                onConfirm={handleDateConfirm}
+                onCancel={hideDatePicker}
+                maximumDate={new Date()}
+              />
+          </View>
+          <View style={styles.gap}>
+            <Text style={styles.label}>To Date</Text>
+              <TouchableOpacity onPress={showDatePicker} activeOpacity={0.8}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="DD/MM/YYYY"
+                  value={filterFormatDate(date)}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                onConfirm={handleDateConfirm}
+                onCancel={hideDatePicker}
+                maximumDate={new Date()}
+              />
+          </View>
+          <LinearGradient
+            colors={['#ec7d20', '#be2b2c']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ borderRadius: 50 }}
+          >
+            <Pressable
+              style={styles.addButton}
+            >
+              <Text style={styles.buttonText}>Filter</Text>
+            </Pressable>
+          </LinearGradient>
+          <Feather
+            name="x"
+            color="#000"
+            size={24}
+            style={styles.close}
+            onPress={() => setShowFilterModal(false)}
+          />
+        </View>
+      </Modal>
+
+      <Modal
+        isVisible={showActionSheet}
+        onBackdropPress={() => setShowActionSheet(false)}
+        style={styles.bottomModal}
+      >
+        <View style={styles.modalContent}>
+          <View style={{ 
+            marginTop: 24,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            display: 'flex' }}
+          >
+            <View style={{ width: '48%' }}>
+              <Pressable
+                style={styles.editButton}
                 onPress={handleEdit}
               >
-                <Feather name="edit" size={20} color={COLORS.primary} />
-                <Text style={styles.actionButtonText}>Edit Voucher</Text>
-              </TouchableOpacity>
-
-              <View style={styles.divider} />
-
-              <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton]}
+                <Feather name="edit-3" color="#fff" size={20} style={{ marginRight: 6 }} />
+                <Text style={styles.buttonText}>Edit</Text>
+              </Pressable>
+            </View>
+            <View style={{ width: '48%' }}>
+              <Pressable
+                style={styles.deleteButton}
                 onPress={handleDelete}
               >
-                <Feather name="trash-2" size={20} color={COLORS.error} />
-                <Text style={[styles.actionButtonText, { color: COLORS.error }]}>Delete Voucher</Text>
-              </TouchableOpacity>
-
-              <View style={styles.divider} />
-
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowActionSheet(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
+                <Feather name="trash" color="#fff" size={20} style={{ marginRight: 6 }} />
+                <Text style={styles.buttonText}>Delete</Text>
+              </Pressable>
             </View>
           </View>
-        </TouchableOpacity>
+          <Feather
+            name="x"
+            color="#000"
+            size={24}
+            style={styles.close}
+            onPress={() => setShowActionSheet(false)}
+          />
+        </View>
       </Modal>
     </>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.black,
     paddingTop: 0,
   },
   back: {
@@ -300,9 +383,6 @@ const styles = StyleSheet.create({
   },
   searchbar: {
     flex: 1
-  },
-  filter: {
-
   },
   add: {
     backgroundColor: '#cd4a26',
@@ -338,7 +418,7 @@ const styles = StyleSheet.create({
     zIndex: 3
   },
   scrollView: {
-    backgroundColor: '#ececec',
+    backgroundColor: COLORS.grey,
     paddingTop: 16,
     paddingLeft: 16,
     paddingRight: 16,
@@ -404,13 +484,48 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     color: COLORS.black,
   },
-  deleteButton: {
-    marginTop: 8,
-  },
   divider: {
     height: 1,
     backgroundColor: COLORS.lightGrey,
     marginVertical: 4,
+  },
+  bottomModal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    paddingTop: 40,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+  },
+  editButton: {
+    backgroundColor: COLORS.primary,
+    width: '100%',
+    height: 48,
+    color: COLORS.white,
+    borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    display: 'flex'
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    backgroundColor: COLORS.red,
+    width: '100%',
+    height: 48,
+    color: COLORS.white,
+    borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    display: 'flex'
   },
   cancelButton: {
     paddingVertical: 16,
@@ -424,4 +539,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.primary,
   },
-});
+  close: {
+    position: 'absolute',
+    zIndex: 3,
+    top: 16,
+    right: 16
+  },
+  gap: {
+    marginBottom: 16,
+  },
+  label: {
+    color: COLORS.black,
+    fontWeight: '500',
+    fontSize: 14,
+    lineHeight: 18,
+    marginBottom: 8,
+    padding: 0,
+  },
+  addButton: {
+    width: '100%',
+    height: 48,
+    color: COLORS.white,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    display: 'flex'
+  }
+})

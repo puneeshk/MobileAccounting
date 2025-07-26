@@ -160,7 +160,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   container: {
-    backgroundColor: COLORS.black,
     paddingTop: 0,
   },
   scrollView: {

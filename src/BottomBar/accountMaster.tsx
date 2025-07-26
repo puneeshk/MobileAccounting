@@ -254,7 +254,6 @@ export default function AccountMaster({ navigation }: any) {
 // Styles remain the same as in your original code
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: COLORS.whit,
     paddingTop: 0,
     color: COLORS.white,
   },
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
     zIndex: 3
   },
   scrollView: {
-    backgroundColor: '#ececec',
+    backgroundColor: COLORS.grey,
     paddingTop: 16,
     paddingLeft: 16,
     paddingRight: 16

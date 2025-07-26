@@ -281,7 +281,6 @@ export default function AddVoucher({ navigation }: any) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: COLORS.darkBlue,
         paddingTop: 0
     },
     back: {
@@ -303,7 +302,7 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     scrollView: {
-        backgroundColor: COLORS.lightBlue,
+        backgroundColor: COLORS.grey,
         height: '100%',
         paddingTop: 16,
         paddingLeft: 16,
